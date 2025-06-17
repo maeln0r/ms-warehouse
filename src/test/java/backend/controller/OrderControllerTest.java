@@ -106,9 +106,9 @@ public class OrderControllerTest {
                 .createdDate(Instant.now())
                 .build();
 
-        Mockito.when(orderService.changeStatus(1L, "SHIPPED")).thenReturn(mockOrder);
+        Mockito.when(orderService.changeStatus(1L, "PENDING")).thenReturn(mockOrder);
 
-        mockMvc.perform(patch("/api/orders/1/SHIPPED"))
+        mockMvc.perform(patch("/api/orders/1/PENDING"))
                 .andExpect(status().isOk());
     }
 

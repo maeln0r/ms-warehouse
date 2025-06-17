@@ -4,7 +4,7 @@ VALUES
      '2025-01-01 00:00:00', '{"fullName": "User One", "username": "user1"}'::jsonb,
      '2025-01-01 00:00:00', '{"fullName": "User One", "username": "user1"}'::jsonb),
 
-    ('O-1002', false, 'Ноутбук MacBook Pro 14" (M3, 16GB RAM)', false, 'SHIPPED', 2500.00, 2,
+    ('O-1002', false, 'Ноутбук MacBook Pro 14" (M3, 16GB RAM)', false, 'PENDING', 2500.00, 2,
      '2025-01-01 00:00:00', '{"fullName": "User Two", "username": "user2"}'::jsonb,
      '2025-01-01 00:00:00', '{"fullName": "User Two", "username": "user2"}'::jsonb),
 
