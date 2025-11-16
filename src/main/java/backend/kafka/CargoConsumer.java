@@ -2,7 +2,6 @@ package backend.kafka;
 
 import backend.dto.CargoDto;
 import backend.service.OrderService;
-import backend.service.WarehouseService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,7 +21,7 @@ public class CargoConsumer {
     private final OrderService orderService;
 
     @KafkaListener(
-            topics = "${app.kafka.topic}",
+            topics = "${kafka.topic}",
             groupId = "cargo-consumer-group",
             containerFactory = "kafkaListenerContainerFactory"
     )

@@ -38,7 +38,7 @@ docker-compose down -v
 
 ## ⚙️ Используемые технологии
 
-- Java 17
+- Java 21
 - Spring Boot 3
 - Spring Kafka
 - PostgreSQL
@@ -48,6 +48,18 @@ docker-compose down -v
 - Kafka UI
 
 ---
+
+Переменные окружения
+
+| Ключ                      | Описание                 | По умолчанию                                 |
+| ------------------------- |--------------------------|----------------------------------------------|
+| `SERVER_PORT`             | Порт HTTP сервера        | `8081`                                       |
+| `DB_URL`                  | JDBC строка PostgreSQL   | `jdbc:postgresql://localhost:5436/warehouse` |
+| `DB_USERNAME`             | Пользователь БД          |                                              |
+| `DB_PASSWORD`             | Пароль БД                |                                              |
+| `KAFKA_BOOTSTRAP_SERVERS` | Bootstrap-сервер Kafka   | `localhost:29092`                            |
+| `CLIENT_URL`              | URL сервиса клиентов     | `http://localhost:8083`                      |
+
 
 ## 👨‍💻 Автор
 

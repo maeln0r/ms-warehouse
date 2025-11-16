@@ -1,11 +1,12 @@
 package backend.mapper;
 
 import backend.dto.CargoDto;
+import backend.dto.CustomerDto;
 import backend.dto.OrderDto;
-import backend.dto.WarehouseDto;
 import backend.enumeration.EntityType;
 import backend.enumeration.OrderStatusEnum;
 import backend.exception.ResourceNotFoundException;
+import backend.feign.CustomerClient;
 import backend.model.Order;
 import backend.model.Warehouse;
 import backend.repository.WarehouseRepository;
@@ -14,11 +15,10 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
@@ -26,6 +26,9 @@ public class OrderMapper {
 
     private final WarehouseRepository warehouseRepository;
     private final ExternalIdGenerator externalIdGenerator;
+    private final CustomerClient customerClient;
+
+    private Map<String, CustomerDto> cachedCustomersByEmail;
 
     // Преобразование из Entity в DTO
     public OrderDto convertToDto(Order entity) {
@@ -44,6 +47,90 @@ public class OrderMapper {
                 .lastModifiedBy(entity.getLastModifiedBy())
                 .build();
     }
+
+
+    public OrderDto mapSingle(CargoDto cargo, Long warehouseId) {
+        if (cachedCustomersByEmail == null) {
+            cachedCustomersByEmail = customerClient.getAll().stream()
+                    .filter(c -> c.getEmail() != null && !c.getEmail().isBlank())
+                    .collect(Collectors.toMap(
+                            c -> c.getEmail().trim().toLowerCase(Locale.ROOT),
+                            Function.identity(),
+                            (a, b) -> a
+                    ));
+        }
+
+        String customerStr = Optional.ofNullable(cargo.getEmail())
+                .map(e -> e.trim().toLowerCase(Locale.ROOT))
+                .map(cachedCustomersByEmail::get)
+                .map(c -> Stream.of(c.getFirstName(), c.getLastName(), c.getPhone(), c.getCity(), c.getEmail())
+                        .filter(Objects::nonNull)
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .collect(Collectors.joining(" ")))
+                .orElse(null);
+
+        return OrderDto.builder()
+                // id и externalId будут выставлены в сервисе (upsert-логика)
+                .isDeleted(cargo.getIsDeleted())
+                .orderName(cargo.getName())
+                .notProcess(Boolean.FALSE)
+                .status(OrderStatusEnum.PENDING)
+                .price(cargo.getPrice())
+                .warehouseId(warehouseId)
+                .createdDate(cargo.getCreatedDate())
+                .createdBy(cargo.getCreatedBy())
+                .lastModifiedDate(cargo.getLastModifiedDate())
+                .lastModifiedBy(cargo.getLastModifiedBy())
+                .customer(customerStr)
+                .build();
+    }
+
+
+
+    public List<OrderDto> mapAllWithGeneratedIds(List<CargoDto> cargos) {
+        List<String> externalIds = externalIdGenerator.generateNextExternalIds(EntityType.ORDER, cargos.size());
+
+        Map<String, CustomerDto> customersByEmail = customerClient.getAll().stream()
+                .filter(c -> c.getEmail() != null && !c.getEmail().isBlank())
+                .collect(Collectors.toMap(
+                        c -> c.getEmail().trim().toLowerCase(Locale.ROOT),
+                        Function.identity(),
+                        (a, b) -> a
+                ));
+        List<OrderDto> orders = new ArrayList<>();
+
+        for (int i = 0; i < cargos.size(); i++) {
+            CargoDto cargo = cargos.get(i);
+            String externalId = externalIds.get(i);
+
+            Warehouse warehouse = warehouseRepository.findByWarehouseName(cargo.getWarehouseName())
+                    .orElseThrow(() -> new EntityNotFoundException("Склад не найден: " + cargo.getWarehouseName()));
+
+            var customerStr = resolveCustomerString(cargo, customersByEmail);
+
+
+            OrderDto order = OrderDto.builder()
+                    .externalId(externalId)
+                    .isDeleted(cargo.getIsDeleted())
+                    .orderName(cargo.getName())
+                    .notProcess(Boolean.FALSE)
+                    .status(OrderStatusEnum.PENDING)
+                    .price(cargo.getPrice())
+                    .warehouseId(warehouse.getId())
+                    .createdDate(cargo.getCreatedDate())
+                    .createdBy(cargo.getCreatedBy())
+                    .lastModifiedDate(cargo.getLastModifiedDate())
+                    .lastModifiedBy(cargo.getLastModifiedBy())
+                    .customer(customerStr)
+                    .build();
+
+            orders.add(order);
+        }
+
+        return orders;
+    }
+
 
     public List<Order> convertAllToEntities(List<OrderDto> dtos) {
         // Кэш по ID склада
@@ -68,64 +155,27 @@ public class OrderMapper {
                             .createdBy(dto.getCreatedBy())
                             .lastModifiedDate(dto.getLastModifiedDate())
                             .lastModifiedBy(dto.getLastModifiedBy())
+                            .customer(dto.getCustomer())
                             .build();
                 })
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Находит клиента по email из cargo (trim+lower) и собирает строку:
+     * firstName + lastName + phone + city + email. Если клиента нет — возвращает null.
+     */
+    private String resolveCustomerString(CargoDto cargo, Map<String, CustomerDto> customersByEmail) {
+        String email = cargo.getEmail();
+        if (email == null || email.isBlank()) return null;
 
-    public List<OrderDto> mapAllWithGeneratedIds(List<CargoDto> cargos) {
-        List<String> externalIds = externalIdGenerator.generateNextExternalIds(EntityType.ORDER, cargos.size());
+        CustomerDto c = customersByEmail.get(email.trim().toLowerCase(Locale.ROOT));
+        if (c == null) return null;
 
-        List<OrderDto> orders = new ArrayList<>();
-
-        for (int i = 0; i < cargos.size(); i++) {
-            CargoDto cargo = cargos.get(i);
-            String externalId = externalIds.get(i);
-
-            Warehouse warehouse = warehouseRepository.findByWarehouseName(cargo.getWarehouseName())
-                    .orElseThrow(() -> new EntityNotFoundException("Склад не найден: " + cargo.getWarehouseName()));
-
-            OrderDto order = OrderDto.builder()
-                    .externalId(externalId)
-                    .isDeleted(cargo.getIsDeleted())
-                    .orderName(cargo.getName())
-                    .notProcess(Boolean.FALSE)
-                    .status(OrderStatusEnum.PENDING)
-                    .price(cargo.getPrice())
-                    .warehouseId(warehouse.getId())
-                    .createdDate(cargo.getCreatedDate())
-                    .createdBy(cargo.getCreatedBy())
-                    .lastModifiedDate(cargo.getLastModifiedDate())
-                    .lastModifiedBy(cargo.getLastModifiedBy())
-                    .build();
-
-            orders.add(order);
-        }
-
-        return orders;
+        return Stream.of(c.getFirstName(), c.getLastName(), c.getPhone(), c.getCity(), c.getEmail())
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.joining(" "));
     }
-
-//    public OrderDto fromCargo(CargoDto cargo) {
-//
-//        Warehouse warehouse = warehouseRepository.findByWarehouseName(cargo.getWarehouseName())
-//                .orElseThrow(() -> new EntityNotFoundException("Склад не найден: " + cargo.getWarehouseName()));
-//
-//        String newExternalId = externalIdGenerator.generateNextExternalId(EntityType.ORDER);
-//
-//
-//        return OrderDto.builder()
-//                .externalId(newExternalId)
-//                .isDeleted(cargo.getIsDeleted())
-//                .orderName(cargo.getName())
-//                .notProcess(Boolean.FALSE)
-//                .status(OrderStatusEnum.PENDING)
-//                .price(cargo.getPrice())
-//                .warehouseId(warehouse.getId())
-//                .createdDate(cargo.getCreatedDate())
-//                .createdBy(cargo.getCreatedBy())
-//                .lastModifiedDate(cargo.getLastModifiedDate())
-//                .lastModifiedBy(cargo.getLastModifiedBy())
-//                .build();
-//    }
 }

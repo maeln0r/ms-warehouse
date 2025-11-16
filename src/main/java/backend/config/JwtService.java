@@ -15,7 +15,7 @@ public class JwtService {
 
     private static final String SECRET_KEY = "super_secure_secret_key_that_is_long_enough_1234567890"; // Лучше в .env
 
-    private static final long EXPIRATION_TIME = 5 * 60 * 1000; // 5 минут
+    private static final long EXPIRATION_TIME = 25 * 60 * 1000; // 25 минут
 
     private Key getSignInKey() {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());

@@ -25,4 +25,5 @@ public class OrderDto {
     private UserInfo createdBy;
     private Instant lastModifiedDate;
     private UserInfo lastModifiedBy;
+    private String customer;
 }

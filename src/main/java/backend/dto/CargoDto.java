@@ -23,4 +23,5 @@ public class CargoDto {
     private UserInfo createdBy;
     private Instant lastModifiedDate;
     private UserInfo lastModifiedBy;
+    private String email;
 }

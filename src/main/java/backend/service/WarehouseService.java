@@ -4,6 +4,7 @@ import backend.dto.WarehouseDto;
 import backend.model.Warehouse;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface WarehouseService {
     WarehouseDto getById(Long id);
@@ -13,4 +14,6 @@ public interface WarehouseService {
     WarehouseDto changeStatus(Long id, String status);
     Warehouse findById(Long warehouseId);
     WarehouseDto saveWarehouse(WarehouseDto warehouseDto);
+    Optional<Warehouse> getByName(String name);
 }
+

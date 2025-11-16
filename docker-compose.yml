@@ -1,63 +1,16 @@
-#version: '3.9'
-#
-#services:
-#  db:
-#    image: postgres:15
-#    container_name: ms-warehouse-db
-#    environment:
-#      POSTGRES_DB: warehouse
-#      POSTGRES_USER: user
-#      POSTGRES_PASSWORD: password
-#    ports:
-#      - "5438:5432"
-#    volumes:
-#      - postgres_data:/var/lib/postgresql/data
-#      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/init.sql
-#
-#  ms-warehouse:
-#    build: .
-#    container_name: ms-warehouse
-#    depends_on:
-#      - db
-#    ports:
-#      - "8082:8080"
-#    environment:
-#      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/warehouse?currentSchema=ms_warehouse
-#      SPRING_DATASOURCE_USERNAME: user
-#      SPRING_DATASOURCE_PASSWORD: password
-#      SPRING_KAFKA_BOOTSTRAP_SERVERS: host.docker.internal:29092
-#
-#volumes:
-#  postgres_data:
-
-version: '3.9'
-
 services:
-  db:
+  warehouse-db:
     image: postgres:15
-    container_name: ms-warehouse-db
+    container_name: warehouse
+    restart: always
+    ports:
+      - "5436:5432"
     environment:
       POSTGRES_DB: warehouse
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5438:5432"
+      POSTGRES_USER: warehouse_user
+      POSTGRES_PASSWORD: warehouse_pswd
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/init.sql
-
-  ms-warehouse:
-    build: .
-    container_name: ms-warehouse
-    depends_on:
-      - db
-    ports:
-      - "8091:8080"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/warehouse?currentSchema=ms_warehouse
-      SPRING_DATASOURCE_USERNAME: user
-      SPRING_DATASOURCE_PASSWORD: password
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: host.docker.internal:29092
+      - warehouse_data:/var/lib/postgresql/data
 
 volumes:
-  postgres_data:
+  warehouse_data:

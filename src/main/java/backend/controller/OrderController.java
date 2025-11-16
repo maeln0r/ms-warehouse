@@ -21,37 +21,37 @@ import java.util.List;
 @Tag(name = "Заказы", description = "Операции с заказами")
 public class OrderController {
 
-    private final OrderService orderService;
+    private final OrderService service;
 
     @GetMapping("/{id}")
     @Operation(summary = "Получить заказ по ID")
     public ResponseEntity<OrderDto> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(orderService.getById(id));
+        return ResponseEntity.ok(service.getById(id));
     }
 
     @GetMapping("/all")
     @Operation(summary = "Получить все заказы")
     public ResponseEntity<List<OrderDto>> getAll() {
-        return ResponseEntity.ok(orderService.getAll());
+        return ResponseEntity.ok(service.getAll());
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Удалить заказ по ID")
     public ResponseEntity<Void> deleteById(@PathVariable Long id) {
-        orderService.deleteById(id);
+        service.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/isDeleted")
     @Operation(summary = "Изменить флаг isDeleted для заказа")
     public ResponseEntity<OrderDto> isDeleted(@PathVariable Long id, @RequestParam boolean isDeleted) {
-        return ResponseEntity.ok(orderService.isDeleted(id, isDeleted));
+        return ResponseEntity.ok(service.isDeleted(id, isDeleted));
     }
 
     @PatchMapping("/{id}/{status}")
     @Operation(summary = "Изменить статус заказа")
     public ResponseEntity<OrderDto> changeStatus(@PathVariable Long id, @PathVariable String status) {
-        return ResponseEntity.ok(orderService.changeStatus(id, status));
+        return ResponseEntity.ok(service.changeStatus(id, status));
     }
 
     @PatchMapping("/{id}/update")
@@ -61,19 +61,19 @@ public class OrderController {
             @RequestParam(required = false) Boolean notProcess,
             @RequestParam(required = false) Long warehouseId,
             @RequestParam(required = false) BigDecimal price) {
-        return ResponseEntity.ok(orderService.updateOrderDetails(id, notProcess, warehouseId, price));
+        return ResponseEntity.ok(service.updateOrderDetails(id, notProcess, warehouseId, price));
     }
 
     @PostMapping("/save")
     @Operation(summary = "Сохранить новый заказ")
     public ResponseEntity<OrderDto> saveOrder(@RequestBody OrderDto orderDto) {
-        return ResponseEntity.ok(orderService.saveOrder(orderDto));
+        return ResponseEntity.ok(service.saveOrder(orderDto));
     }
 
-    @GetMapping("/warehouse/{warehouseId}/orders")
+    @GetMapping("/warehouse/{warehouseId}/order")
     @Operation(summary = "Получить ID заказов по складу")
     public ResponseEntity<List<Long>> getOrderIdsByWarehouse(@PathVariable Long warehouseId) {
-        return ResponseEntity.ok(orderService.getOrderIdsByWarehouse(warehouseId));
+        return ResponseEntity.ok(service.getOrderIdsByWarehouse(warehouseId));
     }
 
     @PatchMapping("/{id}/transfer/{newWarehouseId}")
@@ -81,7 +81,7 @@ public class OrderController {
     public ResponseEntity<OrderDto> transferOrderToAnotherWarehouse(
             @PathVariable Long id,
             @PathVariable Long newWarehouseId) {
-        return ResponseEntity.ok(orderService.transferOrderToAnotherWarehouse(id, newWarehouseId));
+        return ResponseEntity.ok(service.transferOrderToAnotherWarehouse(id, newWarehouseId));
     }
 
     @PatchMapping("/transfer")
@@ -89,7 +89,7 @@ public class OrderController {
     public ResponseEntity<List<OrderDto>> transferOrdersToAnotherWarehouse(
             @RequestParam List<Long> orderIds,
             @RequestParam Long newWarehouseId) {
-        return ResponseEntity.ok(orderService.transferOrdersToAnotherWarehouse(orderIds, newWarehouseId));
+        return ResponseEntity.ok(service.transferOrdersToAnotherWarehouse(orderIds, newWarehouseId));
     }
 
 }

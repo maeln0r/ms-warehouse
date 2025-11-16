@@ -1,6 +1,5 @@
 package backend.service.impl;
 
-import backend.dto.CargoDto;
 import backend.dto.WarehouseDto;
 import backend.enumeration.EntityType;
 import backend.enumeration.WarehouseStatusEnum;
@@ -14,7 +13,6 @@ import backend.service.WarehouseService;
 import backend.utils.ExternalIdGenerator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -52,7 +50,7 @@ public class WarehouseServiceImpl implements WarehouseService {
     @Transactional
     public void deleteById(Long id) {
 
-        if (repository.hasOrders(id)) {
+        if (repository.existsById(id)) {
             throw new IllegalStateException("Нельзя удалить склад, пока есть связанные заказы, перенесите заказы на другой склад");
         }
 
@@ -101,7 +99,7 @@ public class WarehouseServiceImpl implements WarehouseService {
     }
 
     public Optional<Warehouse> getByName(String name) {
-        return repository.findByWarehouseName(name);
+        return Optional.ofNullable(repository.findByWarehouseName(name).orElseThrow(() -> new ResourceNotFoundException("Склад с таким наименованием " + name + " не найден")));
     }
 
 

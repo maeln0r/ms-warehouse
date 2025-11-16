@@ -18,4 +18,6 @@
     <changeSet id="insert-order-data" author="master">
         <sqlFile path="scripts/insert_order.sql" relativeToChangelogFile="true"/>
     </changeSet>
+
+    <include file="insert_email_in_order.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

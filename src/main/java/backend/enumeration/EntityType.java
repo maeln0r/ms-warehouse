@@ -1,6 +1,5 @@
 package backend.enumeration;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 
 public enum EntityType {
     ORDER("O-"),

@@ -1,23 +1,15 @@
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${SERVER_PORT:8081}
 
 spring:
   application:
     name: warehouse
-  kafka:
-#    bootstrap-servers: localhost:9092
-#    bootstrap-servers: kafka:9092
-    bootstrap-servers: host.docker.internal:29092
-
 
   datasource:
-#    url: jdbc:postgresql://${DATASOURCE_URL:localhost}:5436/warehouse?searchPath=ms_warehouse
-#    username: ${DATASOURCE_USERNAME:warehouse_usr}
-#    password: ${DATASOURCE_PASSWORD:warehouse_pswd}
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
-    driverClassName: org.postgresql.Driver
+    url: ${DB_URL:jdbc:postgresql://localhost:5436/warehouse}
+    username: ${DB_USERNAME:warehouse_user}
+    password: ${DB_PASSWORD:warehouse_pswd}
+    driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
@@ -28,7 +20,35 @@ spring:
     enabled: true
     change-log: classpath:db/database_ms_warehouse-changelog.xml
     default-schema: ms_warehouse
-    drop-first: false  # Добавлено, чтобы сначала дропнуть все таблицы перед применением миграций
+    drop-first: false
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+
+# настройки Feign/HTTP-клиента (не обязательно, но удобно)
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connectTimeout: 3000
+            readTimeout: 5000
+            loggerLevel: BASIC
+      compression:
+        request:
+          enabled: true
+          mime-types: application/json
+        response:
+          enabled: true
+
+feign:
+  httpclient:
+    enabled: true
+  okhttp:
+    enabled: false
+
+customer:
+  url: ${CLIENT_URL:http://localhost:8083}
 
 logging:
   level:
@@ -36,6 +56,5 @@ logging:
     liquibase: debug
     org.springframework.security: debug
 
-app:
-  kafka:
-    topic: cargo-topic
+kafka:
+  topic: cargo-topic

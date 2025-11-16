@@ -25,7 +25,7 @@ public class ExternalIdGenerator {
         if (entityType == EntityType.ORDER) {
             lastExternalId = orderRepository.findLastExternalId();
         } else if (entityType == EntityType.WAREHOUSE) {
-            lastExternalId = warehouseRepository.findLastExternalId();
+            lastExternalId = warehouseRepository.findTopByOrderByIdDesc();
         } else {
             throw new IllegalArgumentException("Unsupported entity type for external ID generation");
         }
@@ -51,7 +51,7 @@ public class ExternalIdGenerator {
         if (entityType == EntityType.ORDER) {
             lastExternalId = orderRepository.findLastExternalId();
         } else if (entityType == EntityType.WAREHOUSE) {
-            lastExternalId = warehouseRepository.findLastExternalId();
+            lastExternalId = warehouseRepository.findTopByOrderByIdDesc();
         } else {
             throw new IllegalArgumentException("Unsupported entity type for external ID generation");
         }

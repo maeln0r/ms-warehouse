@@ -18,8 +18,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -177,12 +177,65 @@ public class OrderServiceImpl implements OrderService {
                 .collect(Collectors.toList());
     }
 
+    @Override
     public void saveFromCargos(List<CargoDto> cargos) {
-        List<OrderDto> orderDtos = orderMapper.mapAllWithGeneratedIds(cargos);
+        // 1) вычисляем целевые warehouseId для всех cargo (один раз)
+        Map<String, Long> warehouseIdsByName = cargos.stream()
+                .map(CargoDto::getWarehouseName)
+                .distinct()
+                .collect(Collectors.toMap(
+                        wn -> wn,
+                        wn -> warehouseService.getByName(wn).get().getId()
+                ));
 
-        List<Order> orders = orderMapper.convertAllToEntities(orderDtos);
+        // 2) ключ = name + '#' + warehouseId
+        Function<CargoDto, String> keyFn = c ->
+                c.getName() + "#" + warehouseIdsByName.get(c.getWarehouseName());
 
-        orderRepository.saveAll(orders);
+        // 3) подгружаем уже существующие заказы по множеству имён и складов
+        List<String> names = cargos.stream().map(CargoDto::getName).distinct().toList();
+        List<Long> whIds = new ArrayList<>(new HashSet<>(warehouseIdsByName.values()));
+        Map<String, Order> existingByKey = orderRepository
+                .findByNameInAndWarehouseIdIn(names, whIds).stream()
+                .collect(Collectors.toMap(
+                        o -> o.getName() + "#" + o.getWarehouse().getId(),
+                        Function.identity(),
+                        (a, b) -> a
+                ));
+
+        // 4) считаем, сколько НОВЫХ (нет ключа в БД)
+        List<CargoDto> newCargos = cargos.stream()
+                .filter(c -> !existingByKey.containsKey(keyFn.apply(c)))
+                .toList();
+
+        // 5) генерим externalId ТОЛЬКО для новых
+        Iterator<String> newIds = externalIdGenerator
+                .generateNextExternalIds(EntityType.ORDER, newCargos.size())
+                .iterator();
+
+        // 6) строим OrderDto: для существующих — проставляем id и externalId из БД; для новых — берём из генератора
+        List<OrderDto> orderDtos = cargos.stream()
+                .map(c -> {
+                    String key = keyFn.apply(c);
+                    Order existing = existingByKey.get(key);
+
+                    OrderDto dto = orderMapper.mapSingle(c,    // маппинг всех полей, customer и т.д.
+                            warehouseIdsByName.get(c.getWarehouseName()));
+
+                    if (existing != null) {
+                        // обновление: сохраняем id + externalId существующей записи
+                        dto.setId(existing.getId());
+                        dto.setExternalId(existing.getExternalId());
+                    } else {
+                        // создание: назначаем следующий externalId
+                        dto.setExternalId(newIds.next());
+                    }
+                    return dto;
+                })
+                .toList();
+
+        // 7) в сущности и saveAll — JPA обновит по id, создаст без id
+        List<Order> entities = orderMapper.convertAllToEntities(orderDtos);
+        orderRepository.saveAll(entities);
     }
-
 }

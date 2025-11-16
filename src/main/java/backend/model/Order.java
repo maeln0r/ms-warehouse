@@ -39,4 +39,6 @@ public class Order extends BaseAuditedEntity{
     @ManyToOne
     @JoinColumn(name = "warehouse_id", nullable = false)
     private Warehouse warehouse;
+
+    private String customer;
 }

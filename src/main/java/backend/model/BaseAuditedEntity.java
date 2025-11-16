@@ -17,7 +17,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @MappedSuperclass
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = false)
 @SuperBuilder
 public abstract class BaseAuditedEntity extends BaseEntity {
 
@@ -32,7 +32,7 @@ public abstract class BaseAuditedEntity extends BaseEntity {
     protected Instant lastModifiedDate;
 
     @Type(JsonType.class)
-    @Column(name = "last_modified_by ", columnDefinition = "jsonb")
+    @Column(name = "last_modified_by", columnDefinition = "jsonb")
     protected UserInfo lastModifiedBy;
 
 }
