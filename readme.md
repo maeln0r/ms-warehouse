@@ -32,7 +32,7 @@ docker-compose down -v
 
 Для тестирования и просмотра API:
 
-👉 [Swagger UI](http://localhost:8091/swagger-ui/index.html)
+👉 [Swagger UI](http://localhost:8081/swagger-ui/index.html)
 
 ---
 
