@@ -8,6 +8,10 @@
     <property name="schema" value="ms_warehouse"/>
     <property name="json_type" value="JSONB"/>
 
+    <changeSet id="create-schema-ms-warehouse" author="master">
+        <sql>CREATE SCHEMA IF NOT EXISTS ${schema};</sql>
+    </changeSet>
+
     <include file="changelog/changelog_init_v1.01.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>
