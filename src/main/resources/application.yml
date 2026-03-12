@@ -64,3 +64,14 @@ logging:
 
 kafka:
   topic: ${KAFKA_TOPIC:cargo-topic}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always

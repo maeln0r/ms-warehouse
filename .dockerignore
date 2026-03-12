@@ -1,0 +1,17 @@
+# Build and dependency caches
+.gradle
+build
+out
+
+# IDE/editor files
+.idea
+.vscode
+*.iml
+
+# VCS and logs
+.git
+*.log
+
+# OS noise
+.DS_Store
+Thumbs.db
