@@ -47,12 +47,6 @@ spring:
         response:
           enabled: true
 
-feign:
-  httpclient:
-    enabled: true
-  okhttp:
-    enabled: false
-
 customer:
   url: ${CUSTOMER_URL:${CLIENT_URL:http://localhost:8083}}
 
