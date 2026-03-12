@@ -50,6 +50,10 @@ spring:
 customer:
   url: ${CUSTOMER_URL:${CLIENT_URL:http://localhost:8083}}
 
+jwt:
+  secret: ${JWT_SECRET}
+  expiration-ms: ${JWT_EXPIRATION_MS:1500000}
+
 logging:
   level:
     org.springframework.boot.context.config: debug

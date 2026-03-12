@@ -3,6 +3,7 @@ package backend.config;
 import backend.model.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -13,12 +14,14 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    private static final String SECRET_KEY = "super_secure_secret_key_that_is_long_enough_1234567890"; // Лучше в .env
+    @Value("${jwt.secret}")
+    private String secretKey;
 
-    private static final long EXPIRATION_TIME = 25 * 60 * 1000; // 25 минут
+    @Value("${jwt.expiration-ms:1500000}")
+    private long expirationTime;
 
     private Key getSignInKey() {
-        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+        return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
     // Генерация токена
@@ -27,7 +30,7 @@ public class JwtService {
                 .setSubject(user.getUsername())
                 .claim("role", user.getRole().name())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
