@@ -1,6 +1,7 @@
 package backend.utils;
 
 import backend.enumeration.EntityType;
+import backend.model.Warehouse;
 import backend.repository.OrderRepository;
 import backend.repository.WarehouseRepository;
 import lombok.NoArgsConstructor;
@@ -25,7 +26,7 @@ public class ExternalIdGenerator {
         if (entityType == EntityType.ORDER) {
             lastExternalId = orderRepository.findLastExternalId();
         } else if (entityType == EntityType.WAREHOUSE) {
-            lastExternalId = warehouseRepository.findTopByOrderByIdDesc();
+            lastExternalId = warehouseRepository.findTopByOrderByIdDesc().map(Warehouse::getExternalId);
         } else {
             throw new IllegalArgumentException("Unsupported entity type for external ID generation");
         }
@@ -51,7 +52,7 @@ public class ExternalIdGenerator {
         if (entityType == EntityType.ORDER) {
             lastExternalId = orderRepository.findLastExternalId();
         } else if (entityType == EntityType.WAREHOUSE) {
-            lastExternalId = warehouseRepository.findTopByOrderByIdDesc();
+            lastExternalId = warehouseRepository.findTopByOrderByIdDesc().map(Warehouse::getExternalId);;
         } else {
             throw new IllegalArgumentException("Unsupported entity type for external ID generation");
         }

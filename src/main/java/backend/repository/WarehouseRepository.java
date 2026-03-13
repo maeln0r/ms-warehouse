@@ -11,7 +11,7 @@ public interface WarehouseRepository extends JpaRepository<Warehouse, Long> {
 
     boolean existsById(Long id);
 
-    Optional<String> findTopByOrderByIdDesc();
+    Optional<Warehouse> findTopByOrderByIdDesc();
 
     Optional<Warehouse> findByWarehouseName(String warehouseName);
 }
