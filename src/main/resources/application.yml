@@ -54,6 +54,11 @@ jwt:
   secret: ${JWT_SECRET}
   expiration-ms: ${JWT_EXPIRATION_MS:1500000}
 
+service-auth:
+  seed-enabled: ${SERVICE_AUTH_SEED_ENABLED:true}
+  username: ${WAREHOUSE_USERNAME:demo}
+  password: ${WAREHOUSE_PASSWORD:demo}
+
 logging:
   level:
     org.springframework.boot.context.config: debug
